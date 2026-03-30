@@ -340,8 +340,8 @@ The first decentralized intelligence communication layer built directly into an 
 │                                                                 │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                   GHCR (Pre-built Images)                 │  │
-│  │  ghcr.io/bigbodycobain/shadowbroker-backend:latest        │  │
-│  │  ghcr.io/bigbodycobain/shadowbroker-frontend:latest       │  │
+│  │  ghcr.io/jhezjkp/shadowbroker-backend:latest              │  │
+│  │  ghcr.io/jhezjkp/shadowbroker-frontend:latest             │  │
 │  │  Multi-arch: linux/amd64 + linux/arm64                    │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
@@ -447,7 +447,7 @@ Create a `docker-compose.yml` with the following content and deploy it directly 
 ```yaml
 services:
   backend:
-    image: ghcr.io/bigbodycobain/shadowbroker-backend:latest
+    image: ghcr.io/jhezjkp/shadowbroker-backend:latest
     container_name: shadowbroker-backend
     ports:
       - "8000:8000"
@@ -465,7 +465,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/bigbodycobain/shadowbroker-frontend:latest
+    image: ghcr.io/jhezjkp/shadowbroker-frontend:latest
     container_name: shadowbroker-frontend
     ports:
       - "3000:3000"

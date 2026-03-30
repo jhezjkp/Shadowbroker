@@ -12,6 +12,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
 
 jobs:
   ci-gate:
@@ -130,6 +131,8 @@ jobs:
         working-directory: /tmp/digests/frontend
         run: |
           docker buildx imagetools create \
+            --annotation "index:org.opencontainers.image.source=${{ env.REPOSITORY_URL }}" \
+            --annotation "index:org.opencontainers.image.revision=${{ github.sha }}" \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend@sha256:%s ' *)
 
@@ -246,5 +249,32 @@ jobs:
         working-directory: /tmp/digests/backend
         run: |
           docker buildx imagetools create \
+            --annotation "index:org.opencontainers.image.source=${{ env.REPOSITORY_URL }}" \
+            --annotation "index:org.opencontainers.image.revision=${{ github.sha }}" \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend@sha256:%s ' *)
+
+  publicize-packages:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    needs:
+      - merge-frontend
+      - merge-backend
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish GHCR packages
+        env:
+          GHCR_VISIBILITY_TOKEN: ${{ secrets.GHCR_VISIBILITY_TOKEN }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          package_base="${GITHUB_REPOSITORY_NAME,,}"
+          bash .github/scripts/set-ghcr-visibility.sh \
+            "${package_base}-frontend" \
+            "${package_base}-backend"
